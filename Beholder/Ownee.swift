@@ -10,7 +10,7 @@ import Foundation
 
 let OwneeOwner = "unsafeOwner"
 
-@objc (Ownee) public class Ownee : NSObject {
+@objc public class Ownee : NSObject {
     @IBOutlet public var context:AnyObject?
     unowned var unsafeOwner:AnyObject
     @IBOutlet public weak var owner:NSObject? {
