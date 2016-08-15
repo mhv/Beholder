@@ -38,12 +38,12 @@ import Utils
         }
     }
     
-    override public func cancel() {
+    override public func finish() {
         if context != nil {
             removeObserver(self, forKeyPath: context as! String, context:&self.context)
             owner = nil
         }
-        super.cancel()
+        super.finish()
     }
 }
 
@@ -60,18 +60,18 @@ import Utils
         action(note)
     }
     
-    override public func cancel() {
+    override public func finish() {
         if let name = context as? String {
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: name), object: owner)
-            super.cancel()
+            super.finish()
         }
     }
 }
 
 extension Ownee {
     public func scope(_ scope:NSObject) {
-        weak var scopeDealloc = scope.observe {[weak self] in self?.cancel()}
-        _ = self.observe {[weak scopeDealloc] in scopeDealloc?.cancel()}
+        weak var scopeDealloc = scope.observe {[weak self] in self?.finish()}
+        _ = self.observe {[weak scopeDealloc] in scopeDealloc?.finish()}
     }
 }
 

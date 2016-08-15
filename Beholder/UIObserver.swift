@@ -23,10 +23,10 @@ import UIKit
         action(sender)
     }
     
-    override public func cancel() {
+    override public func finish() {
         if let sender = owner as? UIControl {
             sender.removeTarget(self, action: #selector(UIObserver.observeSender(_:)), for: events)
-            super.cancel()
+            super.finish()
         }
     }
 }
@@ -44,10 +44,10 @@ import UIKit
         action(sender)
     }
     
-    override public func cancel() {
+    override public func finish() {
         if let sender = owner as? UIGestureRecognizer {
             sender.removeTarget(self, action: #selector(UIObserver.observeSender(_:)))
-            super.cancel()
+            super.finish()
         }
     }
 }

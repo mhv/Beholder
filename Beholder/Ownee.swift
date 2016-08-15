@@ -36,11 +36,11 @@ let OwneeOwner = "unsafeOwner"
         (self.owner, self.context) = (owner, context)
         willSet(nil, newValue: owner)
     }
-    public func cancel() {
+    public func finish() {
         owner = nil;
         context = nil
     }
     deinit {
-        cancel()
+        finish()
     }
 }
