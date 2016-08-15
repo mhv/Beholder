@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Utils
 
 @objc public class DAObserver: Ownee {
     let action:()->()
@@ -21,19 +22,19 @@ import Foundation
 }
 
 @objc public class KVObserver: Ownee {
-    let action:[NSObject : AnyObject] -> ()
+    let action:([NSObject : AnyObject]) -> ()
     
-    public init(object:NSObject, keyPath:String, options:NSKeyValueObservingOptions = .New, action:([NSObject : AnyObject]) -> ()) {
+    public init(object:NSObject, keyPath:String, options:NSKeyValueObservingOptions = .new, action:([NSObject : AnyObject]) -> ()) {
         self.action = action
         super.init(owner: object, context: OwneeOwner + "." + keyPath)
         addObserver(self, forKeyPath: self.context as! String, options: options, context: &self.context)
     }
     
-    override public func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
+    override public func observeValue(forKeyPath keyPath: String?, of object: AnyObject?, change: [NSKeyValueChangeKey : AnyObject]?, context: UnsafeMutablePointer<Void>?) {
         if context == &self.context {
             action(change!)
         } else {
-            super.observeValueForKeyPath(keyPath, ofObject: object, change: change, context: context)
+            super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
         }
     }
     
@@ -47,43 +48,43 @@ import Foundation
 }
 
 @objc public class NCObserver: Ownee {
-    let action:NSNotification -> ()
+    let action:(Notification) -> ()
     
-    public init(object:NSObject, name:String, action:(NSNotification -> ())) {
+    public init(object:NSObject, name:String, action:((Notification) -> ())) {
         self.action = action
         super.init(owner: object, context: name)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("observeNote:"), name: name, object: object)
+        NotificationCenter.default.addObserver(self, selector: #selector(NCObserver.observeNote(_:)), name: NSNotification.Name(rawValue: name), object: object)
     }
     
-    public func observeNote(note:NSNotification) {
+    public func observeNote(_ note:Notification) {
         action(note)
     }
     
     override public func cancel() {
         if let name = context as? String {
-            NSNotificationCenter.defaultCenter().removeObserver(self, name: name, object: owner)
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: name), object: owner)
             super.cancel()
         }
     }
 }
 
 extension Ownee {
-    public func scope(scope:NSObject) {
+    public func scope(_ scope:NSObject) {
         weak var scopeDealloc = scope.observe {[weak self] in self?.cancel()}
-        self.observe {[weak scopeDealloc] in scopeDealloc?.cancel()}
+        _ = self.observe {[weak scopeDealloc] in scopeDealloc?.cancel()}
     }
 }
 
 extension NSObject {
-    public func observeName(name:String, scope:NSObject? = nil, action:(NSNotification) -> ()) -> NCObserver {
-        return NCObserver(object: self, name: name,action: action).setup {_ = scope.map($0.scope)}
+    public func observeName(_ name:String, scope:NSObject? = nil, action:(Notification) -> ()) -> NCObserver {
+        return NCObserver(object: self, name: name,action: action).tap {_ = scope.map($0.scope)}
      }
     
-    public func observeKeyPath(keyPath:String, scope:NSObject? = nil, action:([NSObject : AnyObject]) -> ()) -> KVObserver {
-        return KVObserver(object: self, keyPath: keyPath, options: .New, action: action).setup {_ = scope.map($0.scope)}
+    public func observeKeyPath(_ keyPath:String, scope:NSObject? = nil, action:([NSObject : AnyObject]) -> ()) -> KVObserver {
+        return KVObserver(object: self, keyPath: keyPath, options: .new, action: action).tap {_ = scope.map($0.scope)}
     }
     
-    public func observe(scope:NSObject? = nil, dealloc:() -> ()) -> DAObserver {
-        return DAObserver(owner: self, action: dealloc).setup {_ = scope.map($0.scope)}
+    public func observe(_ scope:NSObject? = nil, dealloc:() -> ()) -> DAObserver {
+        return DAObserver(owner: self, action: dealloc).tap {_ = scope.map($0.scope)}
     }
 }

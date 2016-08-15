@@ -18,13 +18,13 @@ let OwneeOwner = "unsafeOwner"
             willSet(owner, newValue: newValue)
         }
     }
-    func willSet(owner:NSObject?, newValue:NSObject?) {
+    func willSet(_ owner:NSObject?, newValue:NSObject?) {
         if owner != newValue {
             if newValue != nil {
-                objc_setAssociatedObject(newValue, unsafeAddressOf(self), self, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+                objc_setAssociatedObject(newValue, unsafeAddress(of: self), self, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
             }
             if owner != nil {
-                objc_setAssociatedObject(owner, unsafeAddressOf(self), nil, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+                objc_setAssociatedObject(owner, unsafeAddress(of: self), nil, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
             }
         }
         unsafeOwner = newValue ?? Ownee.self
